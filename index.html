@@ -1,37 +1,60 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <title>Analisador de Panic Log do iPhone</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Panic View — Leitor de Panic Log</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    pre { white-space: pre-wrap; border: 1px solid #ddd; padding: 10px; }
-    .highlight { background: #ffecec; }
+    body { font-family: system-ui, Arial, sans-serif; margin: 20px; line-height: 1.45; }
+    h1 { margin: 0 0 8px; }
+    pre { white-space: pre-wrap; border: 1px solid #ddd; padding: 10px; border-radius: 6px; }
+    .hint { color: #666; font-size: 0.95rem; margin: 6px 0 14px; }
+    .highlight { background: #fff2f2; }
+    #output { margin-top: 14px; }
+    input[type="file"] { padding: 8px 0; }
   </style>
 </head>
 <body>
   <h1>Analisador de Panic Log do iPhone</h1>
-  <p>Escolha um arquivo “panic-full” (.ips ou .log) para analisar:</p>
-  <input type="file" id="fileInput" ">
-  <div id="output"></div
+  <p class="hint">Escolha um arquivo "panic-full" (.ips ou .log) para analisar:</p>
+
+  <!-- Aceita qualquer arquivo; o usuário pode escolher .ips, .log ou texto -->
+  <input type="file" id="fileInput" />
+
+  <div id="output"></div>
+
   <script>
-    document.getElementById('fileInput').addEventListener('change', function(event) {
+    // Quando o usuário escolhe um arquivo, lemos como texto
+    document.getElementById('fileInput').addEventListener('change', function (event) {
       const file = event.target.files[0];
       if (!file) return;
+
       const reader = new FileReader();
-      reader.onload = function(e) {
-        const text = e.target.result;
+      reader.onload = function (e) {
+        const text = e.target.result || "";
         const lines = text.split(/\r?\n/);
+
+        // Palavras que queremos realçar
         const keywords = ['panicString', 'panicDomain', 'bug_type', 'timestamp'];
+
         const html = lines.map(line => {
           const highlight = keywords.some(k => line.toLowerCase().includes(k.toLowerCase()));
-          const safeLine = line.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-          return `<span class="${highlight ? 'highlight' : ''}">${safeLine}</span>`;
+          // Escapa HTML para exibir com segurança
+          const safeLine = line
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+          return '<span class="' + (highlight ? 'highlight' : '') + '">' + safeLine + '</span>';
         }).join('\n');
+
         document.getElementById('output').innerHTML = '<pre>' + html + '</pre>';
       };
+
       reader.readAsText(file);
     });
   </script>
+
+  <noscript>Ative o JavaScript para usar o analisador.</noscript>
 </body>
 </html>
