@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Analisador de Panic Log do iPhone</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    pre { white-space: pre-wrap; border: 1px solid #ddd; padding: 10px; }
+    .highlight { background: #ffecec; }
+  </style>
+</head>
+<body>
+  <h1>Analisador de Panic Log do iPhone</h1>
+  <p>Escolha um arquivo “panic-full” (.ips ou .log) para analisar:</p>
+  <input type="file" id="fileInput" accept=".ips,.log,.txt">
+  <div id="output"></div>
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split(/\r?\n/);
+        const keywords = ['panicString', 'panicDomain', 'bug_type', 'timestamp'];
+        const html = lines.map(line => {
+          const highlight = keywords.some(k => line.toLowerCase().includes(k.toLowerCase()));
+          const safeLine = line.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          return `<span class="${highlight ? 'highlight' : ''}">${safeLine}</span>`;
+        }).join('\n');
+        document.getElementById('output').innerHTML = '<pre>' + html + '</pre>';
+      };
+      reader.readAsText(file);
+    });
+  </script>
+</body>
+</html>
